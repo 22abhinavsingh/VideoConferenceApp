@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Video Conference | Meeting Room</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg-deep: #0b1220;
+			--bg-mid: #10253f;
+			--bg-soft: #1d4f6e;
+			--accent: #ffbf69;
+			--accent-strong: #ff9e2c;
+			--panel: rgba(9, 23, 41, 0.62);
+			--panel-border: rgba(255, 255, 255, 0.16);
+			--text-main: #f7fbff;
+			--text-muted: #b3c7dd;
+			--ring: rgba(255, 191, 105, 0.45);
+			--tile: rgba(255, 255, 255, 0.06);
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Space Grotesk", "Segoe UI", sans-serif;
+			color: var(--text-main);
+			background:
+					radial-gradient(circle at 85% 15%, rgba(255, 191, 105, 0.22), transparent 36%),
+					radial-gradient(circle at 15% 85%, rgba(0, 185, 255, 0.2), transparent 40%),
+					linear-gradient(130deg, var(--bg-deep), var(--bg-mid) 54%, var(--bg-soft));
+			padding: 20px;
+			overflow-x: hidden;
+		}
+
+		.orb {
+			position: fixed;
+			border-radius: 50%;
+			filter: blur(8px);
+			opacity: 0.55;
+			pointer-events: none;
+			animation: drift 12s ease-in-out infinite;
+			z-index: 0;
+		}
+
+		.orb-one {
+			width: 240px;
+			height: 240px;
+			top: -50px;
+			right: -40px;
+			background: linear-gradient(120deg, #ffbf69, #ff7b7b);
+		}
+
+		.orb-two {
+			width: 200px;
+			height: 200px;
+			bottom: -50px;
+			left: -40px;
+			background: linear-gradient(120deg, #66e0ff, #6f92ff);
+			animation-delay: 1.5s;
+		}
+
+		.meeting-shell {
+			width: min(980px, 100%);
+			margin: 0 auto;
+			background: var(--panel);
+			border: 1px solid var(--panel-border);
+			border-radius: 22px;
+			padding: 30px;
+			box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+			backdrop-filter: blur(18px);
+			-webkit-backdrop-filter: blur(18px);
+			position: relative;
+			z-index: 1;
+			animation: slide-up 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+		}
+
+		.badge {
+			display: inline-block;
+			background: rgba(255, 191, 105, 0.2);
+			border: 1px solid rgba(255, 191, 105, 0.5);
+			color: #ffe6c2;
+			border-radius: 999px;
+			font-size: 0.75rem;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+			font-weight: 600;
+			padding: 6px 12px;
+			margin-bottom: 14px;
+		}
+
+		h1 {
+			margin: 0;
+			font-size: clamp(1.6rem, 3vw, 2.1rem);
+			line-height: 1.15;
+		}
+
+		.subtext {
+			margin: 10px 0 26px;
+			color: var(--text-muted);
+			font-size: 0.95rem;
+		}
+
+		.user-summary {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			padding: 14px 16px;
+			margin-bottom: 20px;
+			border-radius: 16px;
+			background: rgba(7, 16, 30, 0.5);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+		}
+
+		.user-summary-left {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.user-summary .avatar {
+			width: 42px;
+			height: 42px;
+			font-size: 0.85rem;
+			flex: 0 0 auto;
+		}
+
+		.user-summary-text {
+			display: grid;
+			gap: 2px;
+		}
+
+		.user-summary-label {
+			font-size: 0.78rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--text-muted);
+		}
+
+		.user-summary-name {
+			font-size: 1rem;
+			font-weight: 700;
+			color: #f7fbff;
+		}
+
+		.user-summary-email {
+			font-size: 0.9rem;
+			color: #c4d6e7;
+			word-break: break-word;
+		}
+
+		.layout {
+			display: grid;
+			grid-template-columns: 1.25fr 1fr;
+			gap: 20px;
+		}
+
+		.panel {
+			border: 1px solid var(--panel-border);
+			border-radius: 16px;
+			background: rgba(7, 16, 30, 0.5);
+			padding: 18px;
+		}
+
+		.panel h2 {
+			margin: 0 0 12px;
+			font-size: 1.05rem;
+			color: #dff1ff;
+			letter-spacing: 0.02em;
+		}
+
+		.panel-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin-bottom: 12px;
+		}
+
+		.meeting-actions {
+			display: grid;
+			gap: 14px;
+		}
+
+		.meeting-code-wrap {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 10px;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 7px;
+			font-size: 0.9rem;
+			color: #d7e7f8;
+			font-weight: 500;
+		}
+
+		input {
+			width: 100%;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 12px;
+			background: rgba(255, 255, 255, 0.08);
+			color: var(--text-main);
+			padding: 12px 14px;
+			font: inherit;
+			transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+		}
+
+		input::placeholder {
+			color: #9fb5cc;
+		}
+
+		input:focus-visible {
+			outline: none;
+			border-color: var(--accent);
+			box-shadow: 0 0 0 3px var(--ring);
+			transform: translateY(-1px);
+		}
+
+		.btn {
+			border: none;
+			border-radius: 12px;
+			background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+			color: #18243b;
+			font: inherit;
+			font-weight: 700;
+			letter-spacing: 0.01em;
+			padding: 12px 16px;
+			cursor: pointer;
+			transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+		}
+
+		.btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 22px rgba(255, 169, 62, 0.35);
+			filter: saturate(1.08);
+		}
+
+		.btn:active {
+			transform: translateY(0);
+		}
+
+		.btn.create-btn {
+			width: 100%;
+			margin-bottom: 2px;
+		}
+
+		.btn.logout-btn {
+			width: auto;
+			padding: 10px 14px;
+			background: linear-gradient(135deg, #8b1e3f, #5f0f1f);
+			color: #fff1f3;
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			box-shadow: none;
+		}
+
+		.btn.logout-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 22px rgba(123, 18, 45, 0.35);
+			filter: saturate(1.1);
+		}
+
+		.users-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			display: grid;
+			gap: 10px;
+		}
+
+		.users-list li {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			background: var(--tile);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			border-radius: 12px;
+			padding: 10px 12px;
+		}
+
+		.user-meta {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.avatar {
+			width: 34px;
+			height: 34px;
+			border-radius: 50%;
+			display: grid;
+			place-items: center;
+			color: #152238;
+			background: linear-gradient(130deg, #8ee8ff, #ffcf8e);
+			font-size: 0.78rem;
+			font-weight: 700;
+		}
+
+		.user-name {
+			font-size: 0.95rem;
+			color: #eaf5ff;
+		}
+
+		.user-status {
+			font-size: 0.78rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: #8cf1b3;
+		}
+
+		.user-status.offline {
+			color: #b8c7d9;
+		}
+
+		@keyframes slide-up {
+			from {
+				opacity: 0;
+				transform: translateY(16px) scale(0.98);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes drift {
+			0%,
+			100% {
+				transform: translateY(0px) translateX(0px);
+			}
+			50% {
+				transform: translateY(-18px) translateX(12px);
+			}
+		}
+
+		@media (max-width: 860px) {
+			.layout {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 520px) {
+			.meeting-shell {
+				padding: 22px 16px;
+				border-radius: 16px;
+			}
+
+			.meeting-code-wrap {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+<div class="orb orb-one" aria-hidden="true"></div>
+<div class="orb orb-two" aria-hidden="true"></div>
+
+<main class="meeting-shell" role="main">
+	<span class="badge">Meeting Lobby</span>
+	<h1>Join Your Meeting Room</h1>
+	<p class="subtext">Create a new room instantly or join an existing one using a meeting code.</p>
+
+	<div class="user-summary" id="userSummary">
+		<div class="user-summary-left">
+			<span class="avatar" id="currentUserAvatar">--</span>
+			<div class="user-summary-text">
+				<span class="user-summary-label">Logged in user</span>
+				<span class="user-summary-name" id="currentUserName">Loading...</span>
+				<span class="user-summary-email" id="currentUserEmail">Loading...</span>
+			</div>
+		</div>
+	</div>
+
+	<section class="layout" aria-label="Meeting and users layout">
+		<div class="panel">
+			<div class="panel-header">
+				<h2>Room Actions</h2>
+				<button class="btn logout-btn" type="button" onclick="handleLogout()">Logout</button>
+			</div>
+			<div class="meeting-actions">
+				<button class="btn create-btn" type="button" id="newMeetingBtn">Create New Meeting</button>
+				<div>
+					<label for="meetingCode">Meeting Code</label>
+					<div class="meeting-code-wrap">
+						<input id="meetingCode" name="meetingCode" type="text" placeholder="Enter code e.g. VC-9A2B" required>
+						<button class="btn" type="button" id="JoinExistingMeeting">Join Meeting</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<aside class="panel" aria-label="Users list">
+			<h2>Users</h2>
+			<ul class="users-list" id="users-list">
+				<li>
+					<span class="user-meta">
+						<span class="avatar">AK</span>
+						<span class="user-name">Abhinav Kumar</span>
+					</span>
+					<span class="user-status">Online</span>
+				</li>
+				<li>
+					<span class="user-meta">
+						<span class="avatar">RM</span>
+						<span class="user-name">Riya Mehra</span>
+					</span>
+					<span class="user-status">Online</span>
+				</li>
+				<li>
+					<span class="user-meta">
+						<span class="avatar">VP</span>
+						<span class="user-name">Vikram Patel</span>
+					</span>
+					<span class="user-status offline">Offline</span>
+				</li>
+				<li>
+					<span class="user-meta">
+						<span class="avatar">SN</span>
+						<span class="user-name">Sneha Nair</span>
+					</span>
+					<span class="user-status">Online</span>
+				</li>
+			</ul>
+		</aside>
+	</section>
+</main>
+</body>
+
+<script>
+
+	function handleLogout() {
+        const connectedUser = localStorage.getItem('connectedUser');
+        
+        if (connectedUser) {
+            const user = JSON.parse(connectedUser);
+            const userData = new URLSearchParams();
+            userData.append('email', user.email);
+            userData.append('password', user.password);
+            
+            fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: userData.toString()
+            }).catch(error => console.error('Logout error:', error));
+        }
+        
+		localStorage.removeItem('connectedUser');
+		window.location.href = 'login.html';
+	}
+
+	function displayConnectedUser() {
+		const connectedUser = localStorage.getItem('connectedUser');
+		if (!connectedUser) {
+			window.location.href = 'login.html';
+			return;
+		}
+
+		const user = JSON.parse(connectedUser);
+		const name = user.username || user.email || 'User';
+		const email = user.email || 'No email available';
+
+		document.getElementById('currentUserName').textContent = name;
+		document.getElementById('currentUserEmail').textContent = email;
+		document.getElementById('currentUserAvatar').textContent = name.slice(0, 2).toUpperCase();
+	}
+
+    function loadAndDisplayUser(){
+
+        displayConnectedUser();
+
+        const usersListElement = document.getElementById('users-list');
+        usersListElement.innerHTML = 'Loading'; // Clear existing list
+
+fetch('/findAll')
+    .then(response => response.json())
+    .then(users => {
+        usersListElement.innerHTML = ''; // Clear existing list
+        users.forEach(user => {
+            const listItem = document.createElement('li');
+            const isOnline = user.status && user.status.toLowerCase() === 'online';
+            const statusClass = isOnline ? '' : ' offline';
+            listItem.innerHTML = `
+                <span class="user-meta">
+                    <span class="avatar">${user.username.slice(0, 2).toUpperCase()}</span>
+                    <span class="user-name">${user.username}</span>
+                </span>
+                <span class="user-status${statusClass}">${isOnline ? 'Online' : 'Offline'}</span>
+            `;
+            usersListElement.appendChild(listItem);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching users:', error);
+        usersListElement.innerHTML = 'Error loading users';
+    });
+
+}
+
+window.addEventListener('DOMContentLoaded', loadAndDisplayUser);
+
+
+function newMeetingHandler(){
+    const connectedUser = JSON.parse(localStorage.getItem('connectedUser'));
+    window.open(`videocall.html?username=${connectedUser.email}`, '_blank');
+}
+
+const newMeetingBtn = document.getElementById('newMeetingBtn');
+newMeetingBtn.addEventListener('click', newMeetingHandler);
+
+
+
+const joinExistingMeetingBtn = document.getElementById('JoinExistingMeeting');
+
+function joinExistingMeetingHandler(event){
+    const meetingCodeInput = document.getElementById('meetingCode');
+    const connectedUser = JSON.parse(localStorage.getItem('connectedUser'));
+    const roomId = meetingCodeInput.value;
+
+    alert('Joining meeting with code: ' + roomId);
+    window.open(`videocall.html?roomID=${roomId}&username=${connectedUser.email}`, '_blank');
+}
+
+joinExistingMeetingBtn.addEventListener('click', joinExistingMeetingHandler);
+
+</script>
+
+</html>

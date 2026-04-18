@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Conference | Call</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0b1220;
+            --bg-mid: #10253f;
+            --bg-soft: #1d4f6e;
+            --accent: #ffbf69;
+            --accent-strong: #ff9e2c;
+            --panel: rgba(9, 23, 41, 0.62);
+            --panel-border: rgba(255, 255, 255, 0.16);
+            --text-main: #f7fbff;
+            --text-muted: #b3c7dd;
+            --ring: rgba(255, 191, 105, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            color: var(--text-main);
+        }
+
+        body {
+            background:
+                    radial-gradient(circle at 85% 15%, rgba(255, 191, 105, 0.22), transparent 36%),
+                    radial-gradient(circle at 15% 85%, rgba(0, 185, 255, 0.2), transparent 40%),
+                    linear-gradient(130deg, var(--bg-deep), var(--bg-mid) 54%, var(--bg-soft));
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(8px);
+            opacity: 0.55;
+            pointer-events: none;
+            animation: drift 12s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        .orb-one {
+            width: 240px;
+            height: 240px;
+            top: -50px;
+            right: -40px;
+            background: linear-gradient(120deg, #ffbf69, #ff7b7b);
+        }
+
+        .orb-two {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            left: -40px;
+            background: linear-gradient(120deg, #66e0ff, #6f92ff);
+            animation-delay: 1.5s;
+        }
+
+        .call-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: rgba(9, 23, 41, 0.45);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position: relative;
+            z-index: 10;
+        }
+
+        .call-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 191, 105, 0.2);
+            border: 1px solid rgba(255, 191, 105, 0.5);
+            color: #ffe6c2;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 5px 10px;
+        }
+
+        .call-header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+
+        .call-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-logout {
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #8b1e3f, #5f0f1f);
+            color: #fff1f3;
+            font: inherit;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.01em;
+            padding: 9px 14px;
+            cursor: pointer;
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(123, 18, 45, 0.35);
+            filter: saturate(1.1);
+        }
+
+        .btn-logout:active {
+            transform: translateY(0);
+        }
+
+        #call-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes drift {
+            0%,
+            100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            50% {
+                transform: translateY(-18px) translateX(12px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .call-header {
+                padding: 12px 16px;
+            }
+
+            .call-header h1 {
+                font-size: 1.1rem;
+            }
+
+            .btn-logout {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="orb orb-one" aria-hidden="true"></div>
+<div class="orb orb-two" aria-hidden="true"></div>
+
+<header class="call-header">
+    <div class="call-header-left">
+        <span class="badge">Live Conference</span>
+        <h1>Video Call in Progress</h1>
+    </div>
+    <div class="call-header-right">
+        <button class="btn-logout" type="button" onclick="handleCallLogout()">Logout</button>
+    </div>
+</header>
+
+<div id="call-container"></div>
+
+<script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+<script>
+    function handleCallLogout() {
+        const connectedUser = localStorage.getItem('connectedUser');
+        
+        if (connectedUser) {
+            const user = JSON.parse(connectedUser);
+            const userData = new URLSearchParams();
+            userData.append('email', user.email);
+            userData.append('password', user.password);
+            
+            fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: userData.toString()
+            }).catch(error => console.error('Logout error:', error));
+        }
+        
+        localStorage.removeItem('connectedUser');
+        window.location.href = 'login.html';
+    }
+
+    window.onload = function () {
+        function getUrlParams(url) {
+            let urlStr = url.split('?')[1];
+            const urlSearchParams = new URLSearchParams(urlStr);
+            const result = Object.fromEntries(urlSearchParams.entries());
+            return result;
+        }
+
+        // Generate a Token by calling a method.
+        // @param 1: appID
+        // @param 2: serverSecret
+        // @param 3: Room ID
+        // @param 4: User ID
+        // @param 5: Username
+        const roomID = getUrlParams(window.location.href)['roomID'] || (Math.floor(Math.random() * 10000) + "");
+        const userID = Math.floor(Math.random() * 10000) + "";
+        const userName = getUrlParams(window.location.href)['username'] || "userName" + userID;
+        const appID = 1054152545;
+        const serverSecret = "113698ebe8add84c55b5991d2f130c48";
+        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
+
+        
+        const zp = ZegoUIKitPrebuilt.create(kitToken);
+        zp.joinRoom({
+            container: document.querySelector("#call-container"),
+            sharedLinks: [{
+                name: 'Personal link',
+                url: window.location.protocol + '//' + window.location.host  + window.location.pathname + '?roomID=' + roomID,
+            }],
+            scenario: {
+                mode: ZegoUIKitPrebuilt.VideoConference,
+            },
+                
+            turnOnMicrophoneWhenJoining: false,
+            turnOnCameraWhenJoining: false,
+            showMyCameraToggleButton: true,
+            showMyMicrophoneToggleButton: true,
+            showAudioVideoSettingsButton: true,
+            showScreenSharingButton: true,
+            showTextChat: true,
+            showUserList: true,
+            maxUsers: 50,
+            layout: "Auto",
+            showLayoutButton: true,
+         
+        });
+    }
+</script>
+
+</body>
+</html>

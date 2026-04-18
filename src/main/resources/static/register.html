@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Conference | Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0b1220;
+            --bg-mid: #10253f;
+            --bg-soft: #1d4f6e;
+            --accent: #ffbf69;
+            --accent-strong: #ff9e2c;
+            --panel: rgba(9, 23, 41, 0.62);
+            --panel-border: rgba(255, 255, 255, 0.16);
+            --text-main: #f7fbff;
+            --text-muted: #b3c7dd;
+            --danger: #ff7b7b;
+            --success: #7ef4a6;
+            --ring: rgba(255, 191, 105, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            color: var(--text-main);
+            background:
+                    radial-gradient(circle at 85% 15%, rgba(255, 191, 105, 0.22), transparent 36%),
+                    radial-gradient(circle at 15% 85%, rgba(0, 185, 255, 0.2), transparent 40%),
+                    linear-gradient(130deg, var(--bg-deep), var(--bg-mid) 54%, var(--bg-soft));
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(8px);
+            opacity: 0.55;
+            pointer-events: none;
+            animation: drift 12s ease-in-out infinite;
+        }
+
+        .orb-one {
+            width: 240px;
+            height: 240px;
+            top: -50px;
+            right: -40px;
+            background: linear-gradient(120deg, #ffbf69, #ff7b7b);
+        }
+
+        .orb-two {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            left: -40px;
+            background: linear-gradient(120deg, #66e0ff, #6f92ff);
+            animation-delay: 1.5s;
+        }
+
+        .register-shell {
+            width: min(430px, 100%);
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 22px;
+            padding: 34px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            position: relative;
+            z-index: 2;
+            animation: slide-up 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 191, 105, 0.2);
+            border: 1px solid rgba(255, 191, 105, 0.5);
+            color: #ffe6c2;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 6px 12px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 3vw, 2rem);
+            line-height: 1.15;
+        }
+
+        .subtext {
+            margin: 10px 0 24px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 0.9rem;
+            color: #d7e7f8;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 12px 14px;
+            font: inherit;
+            transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+        }
+
+        input::placeholder {
+            color: #9fb5cc;
+        }
+
+        input:focus-visible {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--ring);
+            transform: translateY(-1px);
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #18243b;
+            font: inherit;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            padding: 13px;
+            cursor: pointer;
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(255, 169, 62, 0.35);
+            filter: saturate(1.08);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: progress;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .signIn-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .signIn-link a {
+            color: #d8ebff;
+            text-decoration: none;
+            border-bottom: 1px dashed transparent;
+            transition: border-color 200ms ease;
+            font-weight: 600;
+        }
+
+        .signIn-link a:hover {
+            border-color: #d8ebff;
+        }
+
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes drift {
+            0%,
+            100% {
+                transform: translateY(0px) translateX(0px);
+            }
+            50% {
+                transform: translateY(-18px) translateX(12px);
+            }
+        }
+
+        @media (max-width: 520px) {
+            .register-shell {
+                padding: 26px 20px;
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="orb orb-one" aria-hidden="true"></div>
+<div class="orb orb-two" aria-hidden="true"></div>
+
+<main class="register-shell" role="main">
+    <span class="badge">Create Account</span>
+    <h1>Join Us Today</h1>
+    <p class="subtext">Create your account to start hosting and joining video conferences.</p>
+
+    <form id="registerForm" novalidate>
+        <div class="field">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" placeholder="Choose a username" required>
+        </div>
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="your@email.com" required>
+        </div>
+
+        <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Create a strong password" required>
+        </div>
+
+        <button type="submit">Create Account</button>
+
+        <p class="signIn-link">
+            Already have an account? <a href="login.html">Sign in</a>
+        </p>
+    </form>
+</main>
+</body>
+
+<script>
+
+    function registerFormHandler(event){
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const userData = new URLSearchParams();
+        userData.append('username', formData.get('username'));
+        userData.append('email', formData.get('email'));
+        userData.append('password', formData.get('password'));
+
+        fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: userData.toString()
+        }).then(response => {
+            if (response.ok) {
+               // alert('Registration successful! Please log in.');
+               localStorage.setItem('connectedUser', JSON.stringify(userData));
+               userData.set('status', 'online');
+                window.location.href = 'index.html';
+            } else {
+                alert('Registration failed. Please try again.');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again later.');
+        });
+    }
+
+    const registerForm = document.getElementById('registerForm');
+
+    registerForm.addEventListener('submit',registerFormHandler);
+</script>
+
+</html>
